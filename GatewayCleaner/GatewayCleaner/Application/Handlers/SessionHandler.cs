@@ -19,14 +19,16 @@ internal class SessionHandler
     {
         try
         {
+            var start = DateTime.Now;
             var service = new SessionService(_connectionString);
 
             if (!service.ValidateConnection()) return;
 
             List<Session> sessions = service.GetSessions(_minutesToDecrease);
-
             service.Kill(sessions);
-            Console.WriteLine();
+
+            if (sessions.Count > 0)
+                Log.Information($"Processo finalizado em {DateTime.Now - start}");
         }
         catch (Exception ex)
         {

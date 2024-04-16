@@ -1,6 +1,7 @@
 ﻿using GatewayCleaner.Infra.Entities;
 using GatewayCleaner.Infra.Repositories;
 using Serilog;
+using System.Text;
 
 namespace GatewayCleaner.Domain.Services;
 
@@ -36,14 +37,16 @@ internal class SessionService
 
         Log.Information($"Listando sessões anteriores a {minimumTime:yyyy-MM-dd HH:mm:ss}...");
         List<Session> sessions = _sessionRepository.GetSessions(minimumTime);
-        Log.Information($"{sessions.Count} sessões localizadas.");
 
-        if (sessions.Count > 0) Console.WriteLine("SPID, UserName, StartTime, CpuTime, ElapsedTime");
+        var builder = new StringBuilder("SPID, UserName, StartTime, CpuTime, ElapsedTime\n");
 
         foreach (var session in sessions)
-            Console.WriteLine(session);
+            builder.Append($"{session}\n");
 
-        Console.WriteLine();
+        if (sessions.Count > 0)
+            Log.Information($"{sessions.Count} sessões localizadas.\n{builder}\n");
+        else
+            Log.Information($"Nenhuma sessão foi localizada.");
 
         return sessions;
     }
