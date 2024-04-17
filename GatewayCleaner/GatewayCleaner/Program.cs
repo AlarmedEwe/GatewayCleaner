@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Serilog;
 
-Console.Title = "Gateway Cleaner";
+Console.Title = "Gateway Cleaner - v1.1";
 
 var builder = new ConfigurationBuilder();
 builder.SetBasePath(Directory.GetCurrentDirectory())

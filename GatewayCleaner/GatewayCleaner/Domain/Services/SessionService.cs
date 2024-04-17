@@ -35,7 +35,7 @@ internal class SessionService
     {
         DateTime minimumTime = DateTime.UtcNow.AddMinutes(minutesToDecrease);
 
-        Log.Information($"Listando sessões anteriores a {minimumTime:yyyy-MM-dd HH:mm:ss}...");
+        Log.Information($"Listando sessões anteriores a {minimumTime:yyyy-MM-dd HH:mm:ss} (duração > {-minutesToDecrease}min)");
         List<Session> sessions = _sessionRepository.GetSessions(minimumTime);
 
         var builder = new StringBuilder("SPID, UserName, StartTime, CpuTime, ElapsedTime\n");
@@ -44,7 +44,7 @@ internal class SessionService
             builder.Append($"{session}\n");
 
         if (sessions.Count > 0)
-            Log.Information($"{sessions.Count} sessões localizadas.\n{builder}\n");
+            Log.Information($"{sessions.Count} sessões localizadas.\n{builder}");
         else
             Log.Information($"Nenhuma sessão foi localizada.");
 
@@ -75,11 +75,11 @@ internal class SessionService
 
             DateTime start = DateTime.Now;
             _sessionRepository.Kill(session.SPID);
-            Log.Warning($"Sessão [{session.SPID}] levou {DateTime.Now - start} para ser encerrada.");
+            Log.Warning($"Sessão [{session.SPID}] levou {(DateTime.Now - start).ToString(@"mm\:ss\.ffff")} para ser encerrada.");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, $"Erro ao matar a sessão [{session.SPID}].");
+            Log.Error($"Erro ao matar a sessão [{session.SPID}].\n\t{ex.GetType().Name}: {ex.Message}{ex.InnerException?.Message}");
         }
     }
 }
