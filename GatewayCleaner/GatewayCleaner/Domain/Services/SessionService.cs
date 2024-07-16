@@ -31,12 +31,12 @@ internal class SessionService
         }
     }
 
-    public List<Session> GetSessions(int minutesToDecrease)
+    public List<Session> GetSessions(int minutesToDecrease, string[] allowedUsers)
     {
         DateTime minimumTime = DateTime.UtcNow.AddMinutes(minutesToDecrease);
 
         Log.Information($"Listando sessões anteriores a {minimumTime:yyyy-MM-dd HH:mm:ss} (duração > {-minutesToDecrease}min)");
-        List<Session> sessions = _sessionRepository.GetSessions(minimumTime);
+        List<Session> sessions = _sessionRepository.GetSessions(minimumTime, allowedUsers);
 
         var builder = new StringBuilder("SPID, UserName, StartTime, CpuTime, ElapsedTime\n");
 

@@ -1,4 +1,5 @@
-﻿using GatewayCleaner.Domain.Services;
+﻿using GatewayCleaner.Application.Configuration;
+using GatewayCleaner.Domain.Services;
 using GatewayCleaner.Infra.Entities;
 using Serilog;
 
@@ -8,11 +9,13 @@ internal class SessionHandler
 {
     private readonly string _connectionString;
     private readonly int _minutesToDecrease;
+    private readonly string[] _allowedUsers;
 
-    public SessionHandler(string connectionString, int minutesToDecrease)
+    public SessionHandler(AppSettings appSettings)
     {
-        _connectionString = connectionString;
-        _minutesToDecrease = minutesToDecrease;
+        _connectionString = appSettings.ConnectionString;
+        _minutesToDecrease = appSettings.Minutes.ToDecrease;
+        _allowedUsers = appSettings.AllowedUsers;
     }
 
     public void Run()
@@ -24,7 +27,7 @@ internal class SessionHandler
 
             if (!service.ValidateConnection()) return;
 
-            List<Session> sessions = service.GetSessions(_minutesToDecrease);
+            List<Session> sessions = service.GetSessions(_minutesToDecrease, _allowedUsers);
             service.Kill(sessions);
 
             if (sessions.Count > 0)

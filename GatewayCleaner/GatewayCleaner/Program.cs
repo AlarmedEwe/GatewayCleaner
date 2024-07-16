@@ -1,8 +1,9 @@
-﻿using GatewayCleaner.Application.Handlers;
+﻿using GatewayCleaner.Application.Configuration;
+using GatewayCleaner.Application.Handlers;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 
-Console.Title = "Gateway Cleaner - v1.1";
+Console.Title = "Gateway Cleaner - v1.2";
 
 var builder = new ConfigurationBuilder();
 builder.SetBasePath(Directory.GetCurrentDirectory())
@@ -19,17 +20,26 @@ Log.Information("Iniciando sistema...");
 
 try
 {
-    var connectionString = config.GetConnectionString("SSAS")
-        ?? throw new Exception("Erro ao recuperar a Connection String");
-    int minutesToDecrease = Convert.ToInt32(config["minutes:toDecrease"]);
-    int minutesBetweenRuns = Convert.ToInt32(config["minutes:betweenRuns"]);
-
-    var handler = new SessionHandler(connectionString, minutesToDecrease);
+    var appSettings = new AppSettings(config);
+    var handler = new SessionHandler(appSettings);
 
     while (true)
     {
+        bool timeToRun = false;
+        var now = DateTime.Now.TimeOfDay;
+        foreach (var runtime in appSettings.Runtimes)
+        {
+            if (runtime.Begin < now && now < runtime.End)
+            {
+                timeToRun = true;
+                break;
+            }
+        }
+
+        if (!timeToRun) continue;
+
         handler.Run();
-        Thread.Sleep(minutesBetweenRuns * 60 * 1000); // Wait for 1 min and run again
+        Thread.Sleep(appSettings.Minutes.BetweenRuns * 60 * 1000); // Wait for 1 min and run again
     }
 }
 catch (Exception ex)

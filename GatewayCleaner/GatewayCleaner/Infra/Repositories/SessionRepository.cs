@@ -24,19 +24,22 @@ internal class SessionRepository
         return isActive;
     }
 
-    public List<Session> GetSessions(DateTime minimumTime)
+    public List<Session> GetSessions(DateTime minimumTime, string[] allowedUsers)
     {
-        using var conn = new AdomdConnection(_connectionString);
-        conn.Open();
+        string filter = (allowedUsers.Length > 0 ? " and SESSION_USER_NAME <> '" : "")
+            + string.Join("' and SESSION_USER_NAME <> '", allowedUsers)
+            + (allowedUsers.Length > 0 ? "' " : "");
 
         string commandText = $@"
             select SESSION_SPID, SESSION_USER_NAME, SESSION_START_TIME, SESSION_CPU_TIME_MS, SESSION_ELAPSED_TIME_MS, SESSION_LAST_COMMAND
             from $System.Discover_Sessions
             where SESSION_START_TIME < '{minimumTime:yyyy-MM-dd HH:mm:ss}'
-                and SESSION_USER_NAME <> 'GER\Administrator'
-	            -- and SESSION_USER_NAME <> 'GER\bi.varejo'
+                {filter}
             order by SESSION_START_TIME
         ";
+
+        using var conn = new AdomdConnection(_connectionString);
+        conn.Open();
 
         var cmd = new AdomdCommand(commandText, conn);
         using AdomdDataReader dr = cmd.ExecuteReader();
